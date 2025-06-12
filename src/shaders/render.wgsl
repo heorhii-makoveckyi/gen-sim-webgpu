@@ -18,7 +18,7 @@ struct CellOut {
 // Vertex output to fragment
 struct Varyings {
   @builtin(position) Position: vec4<f32>,
-  @location(0) cellIndex: u32,
+  @location(0) @interpolate(flat) cellIndex: u32,
 };
 
 @vertex

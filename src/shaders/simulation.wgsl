@@ -10,7 +10,7 @@ struct Cell {
   energyFromSun: u32,
   activeGen: u32,
 };
-@group(0) @binding(0) var<storage, read> stateIn: array<Cell>;
+@group(0) @binding(0) var<storage, read_write> stateIn: array<Cell>;
 @group(0) @binding(1) var<storage, read_write> stateOut: array<Cell>;
 @group(0) @binding(2) var<storage, read> geneMatrix: array<u32>;  // Flat array of all gene codes
 @group(0) @binding(3) var<uniform> params: vec4<f32>;   // [sunEnergy, sunCycle, sunMode, energyMultiplier] in x,y,z,w
