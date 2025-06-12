@@ -1,14 +1,14 @@
 // WebGPU Compute Shader: Simulation Logic
 
 struct Cell {
-  originalId: u32;
-  energy: atomic<u32>;
-  maxEnergy: u32;
-  will: u32;
-  maxEnergyToGet: u32;
-  energyInFieldCell: atomic<u32>;
-  energyFromSun: u32;
-  activeGen: u32;
+  originalId: u32,
+  energy: atomic<u32>,
+  maxEnergy: u32,
+  will: u32,
+  maxEnergyToGet: u32,
+  energyInFieldCell: atomic<u32>,
+  energyFromSun: u32,
+  activeGen: u32,
 };
 @group(0) @binding(0) var<storage, read> stateIn: array<Cell>;
 @group(0) @binding(1) var<storage, read_write> stateOut: array<Cell>;

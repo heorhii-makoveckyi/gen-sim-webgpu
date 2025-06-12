@@ -59,6 +59,7 @@ const App: React.FC = () => {
   const computePipelineRef = useRef<GPUComputePipeline>(null);
   const renderPipelineRef = useRef<GPURenderPipeline>(null);
   const bindGroupComputeRef = useRef<GPUBindGroup>(null);
+  const presentationFormatRef = useRef<GPUTextureFormat>("bgra8unorm");
   const bindGroupRenderRef = useRef<GPUBindGroup>(null);
   const stateBufferARef = useRef<GPUBuffer>(null);
   const stateBufferBRef = useRef<GPUBuffer>(null);
@@ -75,7 +76,7 @@ const App: React.FC = () => {
   const copiedGeneRef = useRef<Uint32Array>(null);   // store gene sequence of copied cell
   const copiedParamsRef = useRef<CellParams>(null);  // store traits of copied cell
 
-  // Initialize WebGPU device, pipelines and buffers
+  // Initialize WebGPU device and buffers
   useEffect(() => {
     const init = async () => {
       const canvas = canvasRef.current;
@@ -86,48 +87,7 @@ const App: React.FC = () => {
         gpuDeviceRef.current = device;
         canvasCtxRef.current = canvasContext;
 
-        // Create shader modules
-        const computeModule = device.createShaderModule({ code: computeShaderCode });
-        const renderModule = device.createShaderModule({ code: renderShaderCode });
-
-        // Define bind group layout for compute (bindings for state buffers, gene buffer, uniforms)
-        const computeBindGroupLayout = device.createBindGroupLayout({
-          entries: [
-            { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } }, // state buffer In
-            { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },         // state buffer Out
-            { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } }, // gene buffer
-            { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },         // param uniform (sun settings, etc.)
-            { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } }          // frame uniform (frame count)
-          ]
-        });
-        const renderBindGroupLayout = device.createBindGroupLayout({
-          entries: [
-            { binding: 0, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }, // current state buffer
-            { binding: 1, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },           // param uniform (includes overlay flags, etc.)
-            { binding: 2, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }            // frame uniform (for dynamic sun calc)
-          ]
-        });
-        // Create pipelines
-        computePipelineRef.current = device.createComputePipeline({
-          layout: device.createPipelineLayout({ bindGroupLayouts: [computeBindGroupLayout] }),
-          compute: { module: computeModule, entryPoint: 'computeMain' }
-        });
-        renderPipelineRef.current = device.createRenderPipeline({
-          layout: device.createPipelineLayout({ bindGroupLayouts: [renderBindGroupLayout] }),
-          vertex: {
-            module: renderModule,
-            entryPoint: 'vertMain',
-            buffers: []  // no vertex buffer, we'll use vertex_index
-          },
-          fragment: {
-            module: renderModule,
-            entryPoint: 'fragMain',
-            targets: [{ format: presentationFormat }]
-          },
-          primitive: {
-            topology: 'point-list'  // draw points, each vertex is a point:contentReference[oaicite:25]{index=25}
-          }
-        });
+        presentationFormatRef.current = presentationFormat;
 
         // Create uniform buffers (paramUniform holds global settings; frameUniform holds frameCount and possibly time)
         paramUniformRef.current = device.createBuffer({
@@ -147,6 +107,54 @@ const App: React.FC = () => {
     };
     init();
   }, []);  // run once on mount
+
+  const createPipelines = () => {
+    const device = gpuDeviceRef.current;
+    if (!device) return;
+    const presentationFormat = presentationFormatRef.current;
+
+    const computeCode = computeShaderCode
+      .replace(/\${CanvasWidth}/g, CanvasWidth.toString())
+      .replace(/\${CanvasHeight}/g, CanvasHeight.toString())
+      .replace(/\${geneCount}/g, geneCount.toString());
+
+    const renderCode = renderShaderCode
+      .replace(/\${CanvasWidth}/g, CanvasWidth.toString())
+      .replace(/\${CanvasHeight}/g, CanvasHeight.toString());
+
+    const computeModule = device.createShaderModule({ code: computeCode });
+    const renderModule = device.createShaderModule({ code: renderCode });
+
+    const computeBindGroupLayout = device.createBindGroupLayout({
+      entries: [
+        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+        { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } }
+      ]
+    });
+
+    const renderBindGroupLayout = device.createBindGroupLayout({
+      entries: [
+        { binding: 0, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+        { binding: 1, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },
+        { binding: 2, visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }
+      ]
+    });
+
+    computePipelineRef.current = device.createComputePipeline({
+      layout: device.createPipelineLayout({ bindGroupLayouts: [computeBindGroupLayout] }),
+      compute: { module: computeModule, entryPoint: 'computeMain' }
+    });
+
+    renderPipelineRef.current = device.createRenderPipeline({
+      layout: device.createPipelineLayout({ bindGroupLayouts: [renderBindGroupLayout] }),
+      vertex: { module: renderModule, entryPoint: 'vertMain', buffers: [] },
+      fragment: { module: renderModule, entryPoint: 'fragMain', targets: [{ format: presentationFormat }] },
+      primitive: { topology: 'point-list' }
+    });
+  };
 
   // Function to initialize simulation state buffers and bind groups
   const setupSimulation = () => {
@@ -397,6 +405,7 @@ const App: React.FC = () => {
       // If already running, stop first to reinitialize
       stopSimulation();
     }
+    createPipelines();
     setupSimulation();
     setSimRunning(true);
     setPaused(false);

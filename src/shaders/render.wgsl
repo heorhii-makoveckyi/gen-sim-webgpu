@@ -1,14 +1,14 @@
 // WebGPU Render Shaders: Vertex and Fragment for drawing cells and overlays
 
 struct CellOut {
-  originalId: u32;
-  energy: u32;
-  maxEnergy: u32;
-  will: u32;
-  maxEnergyToGet: u32;
-  energyInFieldCell: u32;
-  energyFromSun: u32;
-  activeGen: u32;
+  originalId: u32,
+  energy: u32,
+  maxEnergy: u32,
+  will: u32,
+  maxEnergyToGet: u32,
+  energyInFieldCell: u32,
+  energyFromSun: u32,
+  activeGen: u32,
 };
 
 @group(0) @binding(0) var<storage, read> state: array<CellOut>;
@@ -18,7 +18,7 @@ struct CellOut {
 // Vertex output to fragment
 struct Varyings {
   @builtin(position) Position: vec4<f32>,
-  @location(0) cellIndex: u32
+  @location(0) cellIndex: u32,
 };
 
 @vertex
