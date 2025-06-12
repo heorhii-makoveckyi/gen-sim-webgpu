@@ -37,7 +37,7 @@ fn randomU32() -> u32 {
   return z;
 }
 fn randomUniform() -> f32 {
-  return f32(randomU32()) / 0xFFFFFFFFu;
+  return f32(randomU32()) / 4294967295.0;
 }
 
 // Determine if a given pixel is lit by sun this frame, based on mode

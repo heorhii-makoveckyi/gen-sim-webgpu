@@ -41,7 +41,7 @@ fn vertMain(@builtin(vertex_index) vertexIndex: u32) -> Varyings {
 }
 
 @fragment
-fn fragMain(@location(0) cellIndex: u32) -> @location(0) vec4<f32> {
+fn fragMain(@location(0) @interpolate(flat) cellIndex: u32) -> @location(0) vec4<f32> {
   let cell = state[cellIndex];
   // Unpack uniform parameters and toggles
   let sunMode = u32(params.z);
