@@ -113,14 +113,20 @@ const App: React.FC = () => {
     if (!device) return;
     const presentationFormat = presentationFormatRef.current;
 
-    const computeCode = computeShaderCode
-      .replace(/\${CanvasWidth}/g, CanvasWidth.toString())
-      .replace(/\${CanvasHeight}/g, CanvasHeight.toString())
-      .replace(/\${geneCount}/g, geneCount.toString());
+    const evalExpr = (expr: string): string => {
+      const ctx = { CanvasWidth, CanvasHeight, geneCount };
+      const sanitized = expr.replace(/CanvasWidth|CanvasHeight|geneCount/g, (m) => String(ctx[m as keyof typeof ctx]));
+      try {
+        return Function(`"use strict"; return (${sanitized});`)().toString();
+      } catch {
+        return expr;
+      }
+    };
 
-    const renderCode = renderShaderCode
-      .replace(/\${CanvasWidth}/g, CanvasWidth.toString())
-      .replace(/\${CanvasHeight}/g, CanvasHeight.toString());
+    const placeholderRegex = /\${([^}]+)}/g;
+
+    const computeCode = computeShaderCode.replace(placeholderRegex, (_, ex) => evalExpr(ex));
+    const renderCode = renderShaderCode.replace(placeholderRegex, (_, ex) => evalExpr(ex));
 
     const computeModule = device.createShaderModule({ code: computeCode });
     const renderModule = device.createShaderModule({ code: renderCode });
