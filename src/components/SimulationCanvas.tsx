@@ -24,7 +24,8 @@ export const SimulationCanvas: React.FC<Props> = ({ params, state, onStateChange
 
     // Initialize the simulation
     simulationRef.current.initialize(params, geneMatrixRef.current)
-    onStateChange({ frameCount: 0 })
+    const stats = simulationRef.current.getStats()
+    onStateChange({ frameCount: 0, cellCount: stats.cellCount, totalEnergy: stats.totalEnergy })
   }, [params, copiedGenes, onStateChange])
 
   const runSimulationStep = useCallback(() => {
@@ -75,6 +76,13 @@ export const SimulationCanvas: React.FC<Props> = ({ params, state, onStateChange
       initializeSimulation()
     }
   }, [params, copiedGenes, state.running, initializeSimulation])
+
+  // Reinitialize when starting a new run
+  useEffect(() => {
+    if (simulationRef.current && state.running && state.frameCount === 0) {
+      initializeSimulation()
+    }
+  }, [state.running, state.frameCount, initializeSimulation])
 
   // Handle animation loop
   useEffect(() => {

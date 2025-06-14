@@ -109,6 +109,7 @@ export class WebGLSimulation {
     this.setUniform2f('u_maxEnergyRange', params.maxEnergyRange[0], params.maxEnergyRange[1])
     this.setUniform2f('u_maxEnergyToGetRange', params.maxEnergyToGetRange[0], params.maxEnergyToGetRange[1])
     this.setUniform1f('u_geneMatrixSize', params.geneMatrixWidth * params.geneMatrixHeight)
+    this.setUniform1f('u_geneMatrixHeight', params.geneMatrixHeight)
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers.cellTexture1A)
     gl.viewport(0, 0, params.width, params.height)
@@ -120,6 +121,7 @@ export class WebGLSimulation {
     this.setUniform2f('u_resolution', params.width, params.height)
     this.setUniform2f('u_maxEnergyToGetRange', params.maxEnergyToGetRange[0], params.maxEnergyToGetRange[1])
     this.setUniform1f('u_geneMatrixSize', params.geneMatrixWidth * params.geneMatrixHeight)
+    this.setUniform1f('u_geneMatrixHeight', params.geneMatrixHeight)
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers.cellTexture2A)
     gl.viewport(0, 0, params.width, params.height)

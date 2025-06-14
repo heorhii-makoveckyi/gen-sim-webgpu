@@ -150,5 +150,9 @@ void main() {
         }
     }
 
+    if (newCell1.x > 0.0 && newCell1.y <= 0.0) {
+        newCell1 = vec4(0.0);
+    }
+
     fragColor = newCell1;
 }
