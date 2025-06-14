@@ -101,12 +101,12 @@ void main() {
         float action = myIntention.x;
 
         if (action >= 1.0 && action <= 4.0) { // Division
-                                              // Halve my energy if division succeeded
                                               vec2 targetPos = vec2(myIntention.y, myIntention.z);
                                               vec4 targetCell = texture(u_cellTexture1, targetPos / u_resolution);
-                                              if (targetCell.x == 0.0) { // Target was empty
-                                                                         newCell1.y *= 0.5;
+                                              if (targetCell.x == 0.0) {
+                                                  newCell1.y *= 0.5; // Successful division
                                               }
+                                              newCell1.y -= newCell1.w; // Energy cost
         }
         else if (action == 5.0) { // Extract energy
                                   float extracted = myIntention.w;
@@ -116,8 +116,11 @@ void main() {
                                   float solar = myIntention.w;
                                   newCell1.y = min(newCell1.y + solar - newCell1.w, newCell1.z);
         }
+        else if (action >= 7.0 && action <= 10.0) { // Transfer energy
+                                              float amount = myIntention.w;
+                                              newCell1.y = max(newCell1.y - (amount + newCell1.w), 0.0);
+        }
         else if (action >= 11.0 && action <= 13.0) { // Suicide pixel actions
-                                                     // Cell dies
                                                      newCell1 = vec4(0.0);
         }
     }
@@ -148,6 +151,10 @@ void main() {
                 }
             }
         }
+    }
+
+    if (newCell1.x > 0.0 && newCell1.y <= 0.0) {
+        newCell1 = vec4(0.0);
     }
 
     fragColor = newCell1;

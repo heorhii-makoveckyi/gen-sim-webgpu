@@ -108,8 +108,9 @@ void main() {
                           }
     }
 
-    // Clear fields if cell died
+    // Clear fields if cell died and store remaining energy
     if (cell1Old.x > 0.0 && cell1.x == 0.0) {
+        newCell2.y += cell1Old.y;
         newCell2.x = 0.0;
         newCell2.z = 0.0;
         newCell2.w = 0.0;

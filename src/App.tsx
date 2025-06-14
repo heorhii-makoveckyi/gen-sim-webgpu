@@ -61,7 +61,7 @@ function App() {
       } else {
         alert('Invalid cell data in clipboard')
       }
-    } catch (error) {
+    } catch {
       alert('Failed to read clipboard')
     }
   }, [enableRepeatGeneration, handleStart])

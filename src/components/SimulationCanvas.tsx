@@ -24,7 +24,8 @@ export const SimulationCanvas: React.FC<Props> = ({ params, state, onStateChange
 
     // Initialize the simulation
     simulationRef.current.initialize(params, geneMatrixRef.current)
-    onStateChange({ frameCount: 0 })
+    const stats = simulationRef.current.getStats()
+    onStateChange({ frameCount: 0, cellCount: stats.cellCount, totalEnergy: stats.totalEnergy })
   }, [params, copiedGenes, onStateChange])
 
   const runSimulationStep = useCallback(() => {
@@ -67,6 +68,7 @@ export const SimulationCanvas: React.FC<Props> = ({ params, state, onStateChange
         cancelAnimationFrame(animationRef.current)
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Handle simulation initialization when parameters change

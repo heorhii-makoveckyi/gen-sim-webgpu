@@ -1,4 +1,4 @@
-import { SimulationParams, CellData } from '../types/simulation'
+import { SimulationParams, CellData, SunMode } from '../types/simulation'
 
 export function generateRandomGeneMatrix(width: number, height: number): number[][] {
   const matrix: number[][] = []
@@ -54,7 +54,7 @@ export function getDefaultParams(): SimulationParams {
 
     maxSolarEnergy: 2,
     dayCycleDuration: 1000,
-    sunMode: 'constant_full' as any,
+    sunMode: SunMode.CONSTANT_FULL,
 
     showAccumulatedEnergy: true,
     showSunEnergy: true,
