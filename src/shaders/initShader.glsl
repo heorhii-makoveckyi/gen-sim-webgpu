@@ -7,7 +7,8 @@ uniform float u_initialEnergyMultiplier;
 uniform vec2 u_willRange;
 uniform vec2 u_maxEnergyRange;
 uniform vec2 u_maxEnergyToGetRange;
-uniform float u_geneMatrixSize; // width * height
+uniform float u_geneMatrixSize;  // width * height
+uniform float u_geneMatrixHeight; // number of rows in gene matrix
 
 in vec2 v_texCoord;
 out vec4 fragColor;
@@ -54,8 +55,8 @@ void main() {
         // energyFromSun (starts at 0)
         cell2.z = 0.0;
 
-        // activeGen (random starting gene order)
-        cell2.w = floor(hash(coord + vec2(4.0, 0.0)) * u_geneMatrixSize);
+        // activeGen (random starting gene row)
+        cell2.w = floor(hash(coord + vec2(4.0, 0.0)) * u_geneMatrixHeight);
     }
 
     // Output characteristics (we'll use two textures to store all 8 values)
