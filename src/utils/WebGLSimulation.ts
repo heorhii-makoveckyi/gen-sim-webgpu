@@ -12,6 +12,8 @@ import resolve2ShaderSource from '../shaders/resolve2Shader.glsl'
 import renderShaderSource from '../shaders/renderShader.glsl'
 
 export class WebGLSimulation {
+  private width = 0
+  private height = 0
   private gl: WebGL2RenderingContext
   private programs: Record<string, WebGLProgram> = {}
   private textures: Record<string, WebGLTexture> = {}
@@ -68,6 +70,9 @@ export class WebGLSimulation {
 
   initialize(params: SimulationParams, geneMatrix: number[][]) {
     const { width, height } = params
+
+    this.width = width
+    this.height = height
 
     // Create textures
     this.textures = {
@@ -134,6 +139,10 @@ export class WebGLSimulation {
       cellTexture1: this.pingPong ? this.textures.cellTexture1A : this.textures.cellTexture1B,
       cellTexture2: this.pingPong ? this.textures.cellTexture2A : this.textures.cellTexture2B
     }
+    const currentFramebuffers = {
+      cellTexture1: this.pingPong ? this.framebuffers.cellTexture1B : this.framebuffers.cellTexture1A,
+      cellTexture2: this.pingPong ? this.framebuffers.cellTexture2B : this.framebuffers.cellTexture2A
+    }
     const nextFramebuffers = {
       cellTexture1: this.pingPong ? this.framebuffers.cellTexture1A : this.framebuffers.cellTexture1B,
       cellTexture2: this.pingPong ? this.framebuffers.cellTexture2A : this.framebuffers.cellTexture2B
@@ -192,7 +201,7 @@ export class WebGLSimulation {
     this.setUniform1f('u_mutationProbability', params.mutationProbability)
     this.setUniform1f('u_time', this.time)
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, nextFramebuffers.cellTexture2)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, currentFramebuffers.cellTexture2)
     gl.viewport(0, 0, params.width, params.height)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
@@ -264,7 +273,40 @@ export class WebGLSimulation {
   getStats(): { cellCount: number; totalEnergy: number } {
     // This would need to read back from GPU - expensive operation
     // For now, return placeholder values
-    return { cellCount: 0, totalEnergy: 0 }
+    // return { cellCount: 0, totalEnergy: 0 }
+    const gl = this.gl
+
+      /* 1. Выбираем актуальный FBO с cellTexture1 */
+          const readFbo = this.pingPong
+         ? this.framebuffers.cellTexture1B
+            : this.framebuffers.cellTexture1A
+
+          gl.bindFramebuffer(gl.FRAMEBUFFER, readFbo)
+
+          const { width, height } = { width: this.width, height: this.height }  // задаётся в initialize()
+        const pixels = new Float32Array(width * height * 4)                   // RGBA32F
+
+          gl.readPixels(0, 0, width, height, gl.RGBA, gl.FLOAT, pixels)
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
+          /* 2. Построчный подсчёт */
+            let cellCount = 0
+          let totalEnergy = 0
+
+          for (let row = 0; row < height; row++) {
+            const rowOffset = row * width * 4
+              for (let col = 0; col < width; col++) {
+                const idx = rowOffset + col * 4
+
+                  const originalId = pixels[idx]       // R-канал
+                  if (originalId > 0.0) {              // 0 = пустая ячейка
+                    cellCount++
+                    totalEnergy += pixels[idx + 1]     // G-канал = energy
+                    }
+              }
+          }
+
+          return { cellCount, totalEnergy }
   }
 
   dispose() {

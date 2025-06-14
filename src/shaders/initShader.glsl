@@ -20,15 +20,16 @@ float hash(vec2 p) {
 }
 
 void main() {
-    vec2 coord = v_texCoord * u_resolution;
-    float pixelIndex = coord.y * u_resolution.x + coord.x;
+    vec2  coord       = v_texCoord * u_resolution;
+    float pixelIndex  = coord.y * u_resolution.x + coord.x;   // оставляем для unique ID
 
     // Initialize empty cell
     vec4 cell1 = vec4(0.0); // originalId, energy, maxEnergy, will
     vec4 cell2 = vec4(0.0); // maxEnergyToGet, energyInFieldCell, energyFromSun, activeGen
 
     // Create initial cells
-    if (pixelIndex < u_initialCellCount) {
+    float totalPixels = u_resolution.x * u_resolution.y;
+    if (hash(coord) < u_initialCellCount / totalPixels) {
         float seed = hash(coord);
 
         // originalId (non-zero unique value)

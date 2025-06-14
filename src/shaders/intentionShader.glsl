@@ -76,11 +76,11 @@ void main() {
                                                        // Get next gene for new cell's activeGen
                                                        float nextGeneIndex = i + 1.0;
                                                        if (nextGeneIndex < u_geneMatrixSize.x) {
-                                                           float newActiveGen = getGene(activeGen, nextGeneIndex);
+                                                           float newActiveGen = mod(activeGen + 1.0, u_geneMatrixSize.y);
 
                                                            intentionData = vec4(gene, targetPos.x, targetPos.y, newActiveGen);
-                                                           energy -= energyCost;
-                                                           break; // Only one action per frame
+                                                           energy      -= energyCost;
+                                                           break;                                      // One action per frame
                                                        }
                                                    }
                                                }

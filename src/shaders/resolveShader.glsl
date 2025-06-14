@@ -46,15 +46,17 @@ vec4 findBestIntention(vec2 pixelPos) {
 
                     // Calculate conflict resolution score
                     float score = sourceCell1.w * 1000000.0 + // will
-                    sourceCell1.y * 1000.0 +    // energy
-                    sourceCell2.y * 100.0 +     // energyInFieldCell
+                    sourceCell1.y * 1000.0 + // energy
+                    sourceCell2.y * 100.0 + // energyInFieldCell
                     sourceCell1.x;              // originalId
 
                     if (score > bestScore) {
                         bestScore = score;
-                        bestIntention = intention;
-                        bestIntention.x = checkPos.x; // Store source position
-                        bestIntention.y = checkPos.y;
+                        float action = intention.x;     // сохраняем исходное действие
+                        bestIntention = intention;       // копируем всё как есть
+                        bestIntention.x = checkPos.x;      // x-коорд. родителя
+                        bestIntention.y = checkPos.y;      // y-коорд. родителя
+                        bestIntention.w = action;          // action 1-4 перекидываем в w
                     }
                 }
             }
@@ -82,7 +84,8 @@ void main() {
 
     // Handle incoming division
     vec4 incomingDivision = findBestIntention(pixelPos);
-    if (incomingDivision.x >= 1.0 && incomingDivision.x <= 4.0 && cell1.x == 0.0) {
+    // action теперь во втором слове (w)
+    if (incomingDivision.w >= 1.0 && incomingDivision.w <= 4.0 && cell1.x == 0.0) {
         // This is an empty cell receiving a division
         vec2 sourceCoord = incomingDivision.xy / u_resolution;
         vec4 sourceCell1 = texture(u_cellTexture1, sourceCoord);

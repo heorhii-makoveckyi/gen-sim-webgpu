@@ -42,9 +42,9 @@ export function createGeneTexture(gl: WebGL2RenderingContext, geneMatrix: number
 
 export function getDefaultParams(): SimulationParams {
   return {
-    initialCellCount: 10,
-    geneMatrixWidth: 8,
-    geneMatrixHeight: 4,
+    initialCellCount: 1000,
+    geneMatrixWidth: 30,
+    geneMatrixHeight: 15,
     initialEnergyMultiplier: 5,
     mutationProbability: 0.01,
 
